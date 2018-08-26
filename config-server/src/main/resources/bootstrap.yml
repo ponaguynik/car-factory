@@ -1,0 +1,10 @@
+server:
+  port: 9090
+spring:
+  profiles:
+    active: native
+  cloud:
+    config:
+      server:
+        native:
+          search-locations: file:config-repo

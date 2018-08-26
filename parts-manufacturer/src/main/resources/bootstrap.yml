@@ -1,0 +1,15 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: parts-manufacturer
+  cloud:
+    config:
+      uri: http://localhost:9090
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:9091/eureka
+logging:
+  level:
+    com.myprojects.carfactory.partsmanufacturer: debug

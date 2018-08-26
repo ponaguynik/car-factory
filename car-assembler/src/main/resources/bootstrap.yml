@@ -1,0 +1,15 @@
+server:
+  port: 8090
+spring:
+  application:
+    name: car-assembler
+  cloud:
+    config:
+      uri: http://localhost:9090
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:9091/eureka
+logging:
+  level:
+    com.myprojects.carfactory.carassembler: debug
