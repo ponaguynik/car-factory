@@ -11,9 +11,12 @@ public class Body extends CarPart {
     private double height;
     private double length;
 
+    protected Body() {
+    }
+
     @Builder
-    public Body(String assemblyNumber, String type, double width, double height, double length) {
-        this.assemblyNumber = assemblyNumber;
+    private Body(String assemblyNumber, String type, double width, double height, double length) {
+        super(assemblyNumber);
         this.type = type;
         this.width = width;
         this.height = height;
@@ -21,7 +24,7 @@ public class Body extends CarPart {
     }
 
     public Body(Body body) {
-        this.assemblyNumber = body.getAssemblyNumber();
+        super(body.getAssemblyNumber());
         this.type = body.getType();
         this.height = body.getHeight();
         this.width = body.getWidth();

@@ -1,5 +1,5 @@
 server:
-  port: 9090
+  port: ${PORT:9090}
 spring:
   profiles:
     active: native
@@ -7,4 +7,4 @@ spring:
     config:
       server:
         native:
-          search-locations: file:config-repo
+          search-locations: file:${CONFIG_LOCATION:config-repo}

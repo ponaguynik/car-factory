@@ -1,15 +1,20 @@
 server:
-  port: 8090
+  port: ${PORT:8091}
 spring:
   application:
     name: car-assembler
   cloud:
     config:
-      uri: http://localhost:9090
+      uri: ${CONFIG_SERVER_URI:http://localhost:9090}
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:9091/eureka
+      defaultZone: ${EUREKA_SERVER_URI:http://localhost:9091}/eureka
 logging:
   level:
     com.myprojects.carfactory.carassembler: debug
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
