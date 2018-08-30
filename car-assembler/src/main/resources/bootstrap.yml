@@ -6,6 +6,10 @@ spring:
   cloud:
     config:
       uri: ${CONFIG_SERVER_URI:http://localhost:9090}
+  data:
+    redis:
+      repositories:
+        enabled: true
 eureka:
   client:
     service-url:
