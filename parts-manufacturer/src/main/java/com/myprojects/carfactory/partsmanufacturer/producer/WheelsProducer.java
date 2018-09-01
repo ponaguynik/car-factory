@@ -1,16 +1,20 @@
 package com.myprojects.carfactory.partsmanufacturer.producer;
 
+import com.myprojects.carfactory.model.CarPart;
 import com.myprojects.carfactory.model.Wheel;
 import com.myprojects.carfactory.model.Wheels;
 import com.myprojects.carfactory.partsmanufacturer.util.CollectionUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+import static com.myprojects.carfactory.partsmanufacturer.util.BeanNames.PART_PRODUCING_EXECUTOR;
 import static com.myprojects.carfactory.partsmanufacturer.util.PropertyNames.WHEEL_PRODUCING_TIME_SEC;
 
 @Slf4j
@@ -48,5 +52,9 @@ public class WheelsProducer implements CarPartProducer {
         return wheels;
     }
 
-
+    @Async(PART_PRODUCING_EXECUTOR)
+    @Override
+    public CompletableFuture<CarPart> produceAsync(String assemblyNumber) {
+        return CompletableFuture.completedFuture(produce(assemblyNumber));
+    }
 }

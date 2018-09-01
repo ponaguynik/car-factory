@@ -13,3 +13,8 @@ eureka:
 logging:
   level:
     com.myprojects.carfactory.partsmanufacturer: debug
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

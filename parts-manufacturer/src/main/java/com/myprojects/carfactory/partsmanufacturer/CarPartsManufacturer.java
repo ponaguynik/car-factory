@@ -2,36 +2,42 @@ package com.myprojects.carfactory.partsmanufacturer;
 
 import com.myprojects.carfactory.model.CarPart;
 import com.myprojects.carfactory.partsmanufacturer.client.CarAssemblerClient;
-import com.myprojects.carfactory.partsmanufacturer.producer.CarPartProducer;
+import com.myprojects.carfactory.partsmanufacturer.service.CarPartBatchProductionService;
+import com.myprojects.carfactory.partsmanufacturer.util.AssemblyNumberGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
 
-@Component
+import static com.myprojects.carfactory.partsmanufacturer.util.BeanNames.MANUFACTURE_CAR_PARTS_SEMAPHORE;
+
 @Slf4j
+@Component
 public class CarPartsManufacturer {
-    private final Set<CarPartProducer> producers;
+    private final CarPartBatchProductionService batchProductionService;
     private final CarAssemblerClient carAssemblerClient;
+    private final AssemblyNumberGenerator assemblyNumberGenerator;
+
     private final TaskScheduler manufactureTaskScheduler;
+    private final Semaphore semaphore;
 
     @Autowired
-    public CarPartsManufacturer(Set<CarPartProducer> producers, CarAssemblerClient carAssemblerClient,
-                                TaskScheduler manufactureTaskScheduler) {
-        this.producers = producers;
+    public CarPartsManufacturer(CarAssemblerClient carAssemblerClient,
+                                CarPartBatchProductionService batchProductionService,
+                                AssemblyNumberGenerator assemblyNumberGenerator,
+                                TaskScheduler manufactureTaskScheduler,
+                                @Qualifier(MANUFACTURE_CAR_PARTS_SEMAPHORE) Semaphore semaphore) {
         this.carAssemblerClient = carAssemblerClient;
+        this.batchProductionService = batchProductionService;
+        this.assemblyNumberGenerator = assemblyNumberGenerator;
         this.manufactureTaskScheduler = manufactureTaskScheduler;
+        this.semaphore = semaphore;
     }
 
     @EventListener(ContextRefreshedEvent.class)
@@ -41,48 +47,21 @@ public class CarPartsManufacturer {
     }
 
     private void manufacture() {
-        String assemblyNumber = UUID.randomUUID().toString();
-        Set<Future<?>> futures = new HashSet<>();
-        log.debug("Start manufacturing parts. Assembly number: {}", assemblyNumber);
-        for (CarPartProducer producer : producers) {
-            CompletableFuture<CarPart> future = produceAsync(assemblyNumber, producer);
-            futures.add(future);
+        try {
+            semaphore.acquire();
+            String assemblyNumber = assemblyNumberGenerator.generateAssemblyNumber();
+            batchProductionService.produceBatchOfPartsAsync(assemblyNumber, this::sendToAssembler);
+        } catch (InterruptedException e) {
+            log.warn("Interrupted producing of batch of car parts");
         }
-        for (Future<?> future : futures) {
-            try {
-                future.get();
-            } catch (InterruptedException e) {
-                log.warn("Interrupted car part producing");
-            } catch (ExecutionException e) {
-                log.error("Error when producing car part", e);
-            }
-        }
-        log.debug("End manufacturing parts. Assembly number: {}", assemblyNumber);
     }
 
-    private CarPart sendToAssembler(CarPart carPart, Throwable throwable) {
-        if (carPart != null) {
-            carAssemblerClient.sendCarPart(carPart);
-            return carPart;
-        } else if (throwable != null) {
-            log.error("Exception when producing car part", throwable);
-        } else {
-            log.warn("No car part has been produced");
+    private void sendToAssembler(CarPart part) {
+        try {
+            carAssemblerClient.sendCarPart(part);
+            log.debug("Sent car part: {} to assembler service", part);
+        } catch (Exception e) {
+            log.error("Exception when sending car part to assembler", e);
         }
-        return null;
-    }
-
-    private CarPart handleException(Throwable throwable) {
-        if (throwable != null) {
-            log.error("Exception when sending car part to assembler", throwable);
-        }
-        return null;
-    }
-
-    @Async("partProducingExecutor")
-    public CompletableFuture<CarPart> produceAsync(String assemblyNumber, CarPartProducer producer) {
-        return CompletableFuture.supplyAsync(() -> producer.produce(assemblyNumber))
-                .handle(this::sendToAssembler)
-                .exceptionally(this::handleException);
     }
 }

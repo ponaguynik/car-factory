@@ -10,3 +10,8 @@ eureka:
 zuul:
   host:
     socket-timeout-millis: 30000
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

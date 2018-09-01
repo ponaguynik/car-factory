@@ -9,8 +9,6 @@ import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 
-import java.time.LocalDateTime;
-
 @Data
 @Setter(AccessLevel.PROTECTED)
 @RedisHash("car-constructs")
@@ -20,11 +18,9 @@ public class CarConstruct {
     private Engine engine;
     private Body body;
     private Wheels wheels;
-    private LocalDateTime constructStartTime;
 
     public CarConstruct(String assemblyNumber) {
         this.assemblyNumber = assemblyNumber;
-        this.constructStartTime = LocalDateTime.now();
     }
 
     protected CarConstruct() {

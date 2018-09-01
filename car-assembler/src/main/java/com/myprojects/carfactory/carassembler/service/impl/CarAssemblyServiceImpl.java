@@ -9,7 +9,6 @@ import com.myprojects.carfactory.model.CarPart;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
 
@@ -21,16 +20,16 @@ public class CarAssemblyServiceImpl implements CarAssemblyService {
     private final CarServiceClient carServiceClient;
 
     @Autowired
-    public CarAssemblyServiceImpl(CarConstructRepository repository, Set<CarPartInstaller> installers,
+    public CarAssemblyServiceImpl(CarConstructRepository repository,
+                                  Set<CarPartInstaller> installers,
                                   CarServiceClient carServiceClient) {
         this.repository = repository;
         this.installers = installers;
         this.carServiceClient = carServiceClient;
     }
 
-    // TODO: 30-Aug-18 remove synchronize. Make transactional
     @Override
-    public synchronized void processCarPart(CarPart carPart) {
+    public void processCarPart(CarPart carPart) {
         CarConstruct carConstruct = resolveCarConstruct(carPart.getAssemblyNumber());
         for (CarPartInstaller installer : installers) {
             if (installer.supports(carPart)) {

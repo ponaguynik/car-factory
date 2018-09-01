@@ -8,3 +8,8 @@ spring:
       server:
         native:
           search-locations: file:${CONFIG_LOCATION:config-repo}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
