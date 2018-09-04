@@ -14,6 +14,9 @@ eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_SERVER_URI:http://localhost:9091}/eureka
+  instance:
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 10
 logging:
   level:
     com.myprojects.carfactory.carassembler: debug

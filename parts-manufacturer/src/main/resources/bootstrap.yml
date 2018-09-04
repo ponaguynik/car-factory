@@ -6,15 +6,25 @@ spring:
   cloud:
     config:
       uri: ${CONFIG_SERVER_URI:http://localhost:9090}
+    loadbalancer:
+      retry:
+        enabled: true
 eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_SERVER_URI:http://localhost:9091}/eureka
 logging:
   level:
-    com.myprojects.carfactory.partsmanufacturer: debug
+#    com.myprojects.carfactory.partsmanufacturer: debug
+    com.myprojects.carfactory.partsmanufacturer.client.CarAssemblerClient: DEBUG
 management:
   endpoints:
     web:
       exposure:
         include: "*"
+car-assembler:
+  ribbon:
+    MaxAutoRetries: 0
+    MaxAutoRetriesNextServer: 10
+    OkToRetryOnAllOperations: true
+    ReadTimeout: 2000
